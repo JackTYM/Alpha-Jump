@@ -19,6 +19,8 @@ public class WinController : MonoBehaviour
         transform.GetChild(1).GetComponent<Button>().onClick.AddListener(delegate{
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
             gameObject.SetActive(false);
+            levelStopwatch = Stopwatch.StartNew();
+            jumpCount = 0;
         });
         transform.GetChild(2).GetComponent<Button>().onClick.AddListener(delegate{
             SceneManager.LoadScene("Menu");

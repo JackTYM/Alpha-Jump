@@ -22,6 +22,8 @@ public class MovementHandler : MonoBehaviour
     GameObject winScreen;
     UIHandler uiHandler;
     LineRenderer lr;
+    Stopwatch arrowHoldTimer = Stopwatch.StartNew();
+    List<GameObject> floorCollisions = new List<GameObject>();
 
     // Start is called before the first frame update
     void Start()
@@ -87,7 +89,8 @@ public class MovementHandler : MonoBehaviour
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.LeftArrow)) {
+            if (Input.GetKey(KeyCode.LeftArrow) && arrowHoldTimer.ElapsedMilliseconds > 50) {
+                arrowHoldTimer = Stopwatch.StartNew();
                 currentJumpAngle -= 1;
                 SetLineAngle();
                 if (SceneManager.GetActiveScene().name.Contains("Tutorial")) {
@@ -95,7 +98,8 @@ public class MovementHandler : MonoBehaviour
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.RightArrow)) {
+            if (Input.GetKey(KeyCode.RightArrow) && arrowHoldTimer.ElapsedMilliseconds > 50) {
+                arrowHoldTimer = Stopwatch.StartNew();
                 currentJumpAngle += 1;
                 SetLineAngle();
                 if (SceneManager.GetActiveScene().name.Contains("Tutorial")) {
@@ -103,7 +107,7 @@ public class MovementHandler : MonoBehaviour
                 }
             }
 
-            if (Input.GetKeyUp(KeyCode.Return)) {
+            if ((Input.GetKeyUp(KeyCode.Return) || Input.GetKeyUp(KeyCode.Space)) && onFloor) {
                 if (!clickedLastTick) {
                     currentJumpPower = uiHandler.currentWord.Length * 15f;
                     uiHandler.currentWord = "";
@@ -127,8 +131,10 @@ public class MovementHandler : MonoBehaviour
 
             if (!onFloor) {
                 yVel -= stoppingForce * Time.deltaTime;
-            } else {
-                yVel = 0;
+
+                if (yVel == 0) {
+                    yVel = -0.01f;
+                }
             }
 
             transform.localRotation = new Quaternion();
@@ -172,6 +178,8 @@ public class MovementHandler : MonoBehaviour
         yVel = currentJumpPower * (1-(Mathf.Abs(currentJumpAngle) / 90));
         transform.GetChild(0).gameObject.SetActive(false);
 
+        onFloor = false;
+
         if (SceneManager.GetActiveScene().name.Contains("Tutorial")) {
             GameObject.FindGameObjectWithTag("Tutorial").GetComponent<TutorialTextHandler>().TriggerCondition(TutorialTextHandler.passConditions.Jump);
         }
@@ -179,8 +187,6 @@ public class MovementHandler : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision) {
         Vector2 direction = collision.GetContact(0).normal;
-
-        onFloor = false;
 
         if(Mathf.Round(direction.x) != 0) {
             //Side Of Player
@@ -201,9 +207,19 @@ public class MovementHandler : MonoBehaviour
                 winScreen.GetComponent<WinController>().EndLevel();
             }
             yVel = 0;
+            onFloor = true;
+            floorCollisions.Add(collision.gameObject);
         } else if(Mathf.Round(direction.y) == -1) {
             //Above Player
             yVel *= -1;
+        }
+    }
+
+    void OnCollisionExit2D(Collision2D collision) {
+        if (floorCollisions.Contains(collision.gameObject)) {
+            onFloor = false;
+
+            floorCollisions.Remove(collision.gameObject);
         }
     }
 
