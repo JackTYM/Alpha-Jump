@@ -1,9 +1,9 @@
 const cacheName = "JackTYM-Alpha-Jump-1.0";
 const contentToCache = [
     "Build/docs.loader.js",
-    "Build/docs.framework.js.gz",
-    "Build/docs.data.gz",
-    "Build/docs.wasm.gz",
+    "Build/docs.framework.js",
+    "Build/docs.data",
+    "Build/docs.wasm",
     "TemplateData/style.css"
 
 ];
