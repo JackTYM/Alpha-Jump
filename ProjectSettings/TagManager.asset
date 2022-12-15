@@ -7,6 +7,7 @@ TagManager:
   - Bounce
   - Tutorial
   - DontDestroy
+  - Kill
   layers:
   - Default
   - TransparentFX
