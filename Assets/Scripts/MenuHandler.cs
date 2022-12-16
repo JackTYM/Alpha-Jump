@@ -10,34 +10,14 @@ public class MenuHandler : MonoBehaviour
 {
 
     int leaderboardLevel = 1;
+    GameObject winScreen = null;
+    DictionaryController dictController = null;
+    UIHandler uiHandler = null;
 
     // Start is called before the first frame update
     void Start()
     {
-
-        GameObject winScreen = null;
-
-        foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
-            if (t.name == "Win Screen") {
-                winScreen = t.gameObject;
-            }
-        }
-
-        DictionaryController dictController = null;
-
-        foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
-            if (t.name == "Dictionary") {
-                dictController = t.gameObject.GetComponent<DictionaryController>();
-            }
-        }
-
-        UIHandler uiHandler = null;
-
-        foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
-            if (t.name == "UI") {
-                uiHandler = t.gameObject.GetComponent<UIHandler>();
-            }
-        }
+        loadDontDestroys();;
 
         //Modes
         transform.GetChild(0).GetChild(4).GetComponent<Button>().onClick.AddListener(delegate{
@@ -56,6 +36,7 @@ public class MenuHandler : MonoBehaviour
             transform.GetChild(1).gameObject.SetActive(true);
         });
         transform.GetChild(0).GetChild(1).GetComponent<Button>().onClick.AddListener(delegate{
+            loadDontDestroys();
             SceneManager.LoadScene("Tutorial Map");
             winScreen.GetComponent<WinController>().levelStopwatch = Stopwatch.StartNew();
             winScreen.GetComponent<WinController>().jumpCount = 0;
@@ -70,18 +51,21 @@ public class MenuHandler : MonoBehaviour
 
         //Levels
         transform.GetChild(1).GetChild(1).GetComponent<Button>().onClick.AddListener(delegate{
+            loadDontDestroys();
             SceneManager.LoadScene("Map 1");
             winScreen.GetComponent<WinController>().levelStopwatch = Stopwatch.StartNew();
             winScreen.GetComponent<WinController>().jumpCount = 0;
             uiHandler.gameObject.SetActive(true);
         });
         transform.GetChild(1).GetChild(2).GetComponent<Button>().onClick.AddListener(delegate{
+            loadDontDestroys();
             SceneManager.LoadScene("Map 2");
             winScreen.GetComponent<WinController>().levelStopwatch = Stopwatch.StartNew();
             winScreen.GetComponent<WinController>().jumpCount = 0;
             uiHandler.gameObject.SetActive(true);
         });
         transform.GetChild(1).GetChild(3).GetComponent<Button>().onClick.AddListener(delegate{
+            loadDontDestroys();
             SceneManager.LoadScene("Map 3");
             winScreen.GetComponent<WinController>().levelStopwatch = Stopwatch.StartNew();
             winScreen.GetComponent<WinController>().jumpCount = 0;
@@ -109,6 +93,25 @@ public class MenuHandler : MonoBehaviour
             transform.GetChild(2).gameObject.SetActive(false);
             transform.GetChild(0).gameObject.SetActive(true);
         });
+    }
+
+    void loadDontDestroys() {
+        foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
+            if (t.name == "Win Screen") {
+                winScreen = t.gameObject;
+            }
+        }
+        foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
+            if (t.name == "Dictionary") {
+                dictController = t.gameObject.GetComponent<DictionaryController>();
+            }
+        }
+
+        foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
+            if (t.name == "UI") {
+                uiHandler = t.gameObject.GetComponent<UIHandler>();
+            }
+        }
     }
 
     void updateLeaderboard() {
