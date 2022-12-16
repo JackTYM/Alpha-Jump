@@ -16,15 +16,25 @@ public class WinController : MonoBehaviour
     {
         levelStopwatch = Stopwatch.StartNew();
 
+        UIHandler uiHandler = null;
+
+        foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
+            if (t.name == "UI") {
+                uiHandler = t.gameObject.GetComponent<UIHandler>();
+            }
+        }
+
         transform.GetChild(1).GetComponent<Button>().onClick.AddListener(delegate{
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
             gameObject.SetActive(false);
             levelStopwatch = Stopwatch.StartNew();
             jumpCount = 0;
+            uiHandler.gameObject.SetActive(true);
         });
         transform.GetChild(2).GetComponent<Button>().onClick.AddListener(delegate{
             SceneManager.LoadScene("Menu");
             gameObject.SetActive(false);
+            uiHandler.gameObject.SetActive(false);
         });
         transform.GetChild(3).GetComponent<Button>().onClick.AddListener(delegate{Application.Quit();});
     }

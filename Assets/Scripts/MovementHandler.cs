@@ -20,6 +20,7 @@ public class MovementHandler : MonoBehaviour
     GameObject player;
     GameObject pauseScreen;
     GameObject winScreen;
+    DictionaryController dictController;
     UIHandler uiHandler;
     LineRenderer lr;
     Stopwatch arrowHoldTimer = Stopwatch.StartNew();
@@ -31,7 +32,6 @@ public class MovementHandler : MonoBehaviour
     void Start()
     {
         player = gameObject;
-        uiHandler = GameObject.Find("Canvas").GetComponent<UIHandler>();
         lr = GetComponent<LineRenderer>();
 
         foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
@@ -39,6 +39,12 @@ public class MovementHandler : MonoBehaviour
                 pauseScreen = t.gameObject;
             } else if (t.name == "Win Screen") {
                 winScreen = t.gameObject;
+            }
+        }
+
+        foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
+            if (t.name == "UI") {
+                uiHandler = t.gameObject.GetComponent<UIHandler>();
             }
         }
 
@@ -61,6 +67,14 @@ public class MovementHandler : MonoBehaviour
             foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
                 if (t.name == "Win Screen") {
                     winScreen = t.gameObject;
+                }
+            }
+        }
+
+        if (dictController == null) {
+            foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
+                if (t.name == "Dictionary") {
+                    dictController = t.gameObject.GetComponent<DictionaryController>();
                 }
             }
         }
@@ -114,14 +128,20 @@ public class MovementHandler : MonoBehaviour
             }
 
             if ((Input.GetKeyUp(KeyCode.Return) || Input.GetKeyUp(KeyCode.Space)) && onFloor) {
-                if (!clickedLastTick) {
-                    currentJumpPower = uiHandler.currentWord.Length * 15f;
-                    uiHandler.currentWord = "";
-                    lr.positionCount = 0;
+                if (dictController.validWord(uiHandler.currentWord.ToLower()) || dictController.easyMode) {
+                    if (!clickedLastTick) {
+                        currentJumpPower = uiHandler.currentWord.Length * 15f;
+                        uiHandler.currentWord = "";
+                        lr.positionCount = 0;
 
-                    Jump();
-                    winScreen.GetComponent<WinController>().jumpCount += 1;
-                    clickedLastTick = true;
+                        Jump();
+                        winScreen.GetComponent<WinController>().jumpCount += 1;
+                        clickedLastTick = true;
+                    }
+                } else {
+                    uiHandler.errorText.SetActive(true);
+                    uiHandler.errorText.GetComponent<TMPro.TextMeshProUGUI>().text = uiHandler.currentWord.ToLower() + " is not a valid word!";
+                    uiHandler.currentWord = "";
                 }
             } else {
                 clickedLastTick = false;
