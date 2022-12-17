@@ -17,7 +17,13 @@ public class MenuHandler : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        loadDontDestroys();;
+        loadDontDestroys();
+
+        if (dictController.easyMode) {
+            transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Easy Mode";
+        } else {
+            transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Hard Mode";
+        }
 
         //Modes
         transform.GetChild(0).GetChild(4).GetComponent<Button>().onClick.AddListener(delegate{

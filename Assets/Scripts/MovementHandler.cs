@@ -79,6 +79,8 @@ public class MovementHandler : MonoBehaviour
             }
         }
 
+        transform.localRotation = new Quaternion();
+
         if(!pauseScreen.activeSelf && !winScreen.activeSelf) {
 
             if (pausedVel != Vector2.zero) {
@@ -90,10 +92,7 @@ public class MovementHandler : MonoBehaviour
                 Vector3 mousePoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 Vector3 playerPos = player.transform.position;
 
-                currentJumpAngle = Mathf.Round((Mathf.Atan2(mousePoint.y - playerPos.y, mousePoint.x - playerPos.x)* 180 / Mathf.PI - 90) *-1);
-                if (currentJumpAngle > 180) {
-                    currentJumpAngle = currentJumpAngle-360;
-                }
+                currentJumpAngle = Mathf.Round(Mathf.Atan2(mousePoint.y - playerPos.y, mousePoint.x - playerPos.x)*180/Mathf.PI);
 
                 Vector3 difference = mousePoint - playerPos;
                 difference.z = 0;
@@ -110,7 +109,7 @@ public class MovementHandler : MonoBehaviour
             if (arrowHoldTimer.ElapsedMilliseconds > 100) {
                 if (Input.GetKey(KeyCode.LeftArrow)) {
                     arrowHoldTimer = Stopwatch.StartNew();
-                    currentJumpAngle -= 1;
+                    currentJumpAngle += 1;
                     SetLineAngle();
                     if (SceneManager.GetActiveScene().name.Contains("Tutorial")) {
                         GameObject.FindGameObjectWithTag("Tutorial").GetComponent<TutorialTextHandler>().TriggerCondition(TutorialTextHandler.passConditions.AngleNudge);
@@ -119,7 +118,7 @@ public class MovementHandler : MonoBehaviour
 
                 if (Input.GetKey(KeyCode.RightArrow)) {
                     arrowHoldTimer = Stopwatch.StartNew();
-                    currentJumpAngle += 1;
+                    currentJumpAngle -= 1;
                     SetLineAngle();
                     if (SceneManager.GetActiveScene().name.Contains("Tutorial")) {
                         GameObject.FindGameObjectWithTag("Tutorial").GetComponent<TutorialTextHandler>().TriggerCondition(TutorialTextHandler.passConditions.AngleNudge);
@@ -155,15 +154,13 @@ public class MovementHandler : MonoBehaviour
                 xVel = xVel > 0 ? 0 : xVel;
             }
 
-            if (!onFloor) {
-                yVel -= stoppingForce * Time.deltaTime;
+            yVel -= stoppingForce * Time.deltaTime;
 
-                if (yVel == 0) {
-                    yVel = -0.01f;
-                }
+            if (yVel == 0) {
+                yVel = -0.01f;
             }
 
-            if (onFloorFailsafe.ElapsedMilliseconds > 1000) {
+            if (onFloorFailsafe.ElapsedMilliseconds > 500) {
                 if (transform.position.y == onFloorY && !onFloor) {
                     onFloor = true;
                     yVel = 0;
@@ -171,8 +168,6 @@ public class MovementHandler : MonoBehaviour
                 onFloorFailsafe = Stopwatch.StartNew();
                 onFloorY = transform.position.y;
             }
-
-            transform.localRotation = new Quaternion();
 
             GetComponent<Rigidbody2D>().velocity = new Vector2(xVel, yVel);
 
@@ -185,13 +180,8 @@ public class MovementHandler : MonoBehaviour
     void SetLineAngle() {
         Vector3 playerPos = player.transform.position;
 
-        // normalize to only get a direction with magnitude = 1
-        var direction = Quaternion.AngleAxis(currentJumpAngle, transform.up) * transform.forward;
+        var direction = new Vector3(Mathf.Cos(currentJumpAngle*(Mathf.PI/180)), Mathf.Sin(currentJumpAngle*(Mathf.PI/180)), 0f);
 
-        direction.y = direction.z;
-        direction.z = 0;
-
-        // and finally apply the end position
         var endPosition = playerPos + direction * angleDistance;
 
         lr.startColor = Color.black;
@@ -209,14 +199,20 @@ public class MovementHandler : MonoBehaviour
     }
 
     public void Jump() {
-        xVel = currentJumpPower * (currentJumpAngle / 90);
-        yVel = currentJumpPower * (1-(Mathf.Abs(currentJumpAngle) / 90));
+        var tempShittyCode = (currentJumpAngle-90)*-1;
+        if (tempShittyCode > 180) {
+            tempShittyCode -= 360;
+        }
+
+        xVel = currentJumpPower*(tempShittyCode / 90);
+        yVel = currentJumpPower*(1-(Mathf.Abs(tempShittyCode) / 90));
         transform.GetChild(0).gameObject.SetActive(false);
 
         if (currentJumpPower != 0f) {
             onFloor = false;
         }
 
+        onFloorFailsafe = Stopwatch.StartNew();
         if (SceneManager.GetActiveScene().name.Contains("Tutorial")) {
             GameObject.FindGameObjectWithTag("Tutorial").GetComponent<TutorialTextHandler>().TriggerCondition(TutorialTextHandler.passConditions.Jump);
         }

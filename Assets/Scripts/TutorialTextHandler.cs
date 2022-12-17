@@ -26,6 +26,8 @@ public class TutorialTextHandler : MonoBehaviour
     bool finished = false;
     TMPro.TextMeshPro textBox;
 
+    GameObject letters;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -38,6 +40,12 @@ public class TutorialTextHandler : MonoBehaviour
         textBox.text = tutorialText[currentIndex];
 
         congratulationTimer = Stopwatch.StartNew();
+
+        foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
+            if (t.name == "Letters") {
+                letters = t.gameObject;
+            }
+        }
     }
 
     // Update is called once per frame
