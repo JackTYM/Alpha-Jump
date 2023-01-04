@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 
 public class CameraController : MonoBehaviour
@@ -20,7 +21,8 @@ public class CameraController : MonoBehaviour
         if (yPos < 0) {
             transform.localPosition = new Vector3(transform.localPosition.x, 0, -10);
         } else {
-            if (yPos < 12) {
+
+            if (yPos < 12 || SceneManager.GetActiveScene().name != "Level 1") {
                 transform.localPosition = new Vector3(transform.localPosition.x, yPos, -10);
             } else {
                 transform.localPosition = new Vector3(transform.localPosition.x, 12, -10);

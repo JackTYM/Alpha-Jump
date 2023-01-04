@@ -10,6 +10,7 @@ public class MenuHandler : MonoBehaviour
 {
 
     int leaderboardLevel = 1;
+    int difficulty = 0;
     GameObject winScreen = null;
     DictionaryController dictController = null;
     UIHandler uiHandler = null;
@@ -19,20 +20,24 @@ public class MenuHandler : MonoBehaviour
     {
         loadDontDestroys();
 
-        if (dictController.easyMode) {
-            transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Easy Mode";
-        } else {
-            transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Hard Mode";
-        }
-
         //Modes
         transform.GetChild(0).GetChild(4).GetComponent<Button>().onClick.AddListener(delegate{
-            dictController.easyMode = !dictController.easyMode;
+            loadDontDestroys();
+            dictController.modeIndex++;
+            if (dictController.modeIndex == 3) {
+                dictController.modeIndex = 0;
+            }
 
-            if (dictController.easyMode) {
-                transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Easy Mode";
-            } else {
-                transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Hard Mode";
+            switch (dictController.modeIndex) {
+                case 0:
+                    transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Easy Mode";
+                    break;
+                case 1:
+                    transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Hard Mode";
+                    break;
+                case 2:
+                    transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Glitch Mode";
+                    break;
             }
         });
 
@@ -46,6 +51,7 @@ public class MenuHandler : MonoBehaviour
             SceneManager.LoadScene("Tutorial Map");
             winScreen.GetComponent<WinController>().levelStopwatch = Stopwatch.StartNew();
             winScreen.GetComponent<WinController>().jumpCount = 0;
+            winScreen.GetComponent<WinController>().letterCount = 0;
             uiHandler.gameObject.SetActive(true);
         });
         transform.GetChild(0).GetChild(2).GetComponent<Button>().onClick.AddListener(delegate{
@@ -61,6 +67,7 @@ public class MenuHandler : MonoBehaviour
             SceneManager.LoadScene("Map 1");
             winScreen.GetComponent<WinController>().levelStopwatch = Stopwatch.StartNew();
             winScreen.GetComponent<WinController>().jumpCount = 0;
+            winScreen.GetComponent<WinController>().letterCount = 0;
             uiHandler.gameObject.SetActive(true);
         });
         transform.GetChild(1).GetChild(2).GetComponent<Button>().onClick.AddListener(delegate{
@@ -68,6 +75,7 @@ public class MenuHandler : MonoBehaviour
             SceneManager.LoadScene("Map 2");
             winScreen.GetComponent<WinController>().levelStopwatch = Stopwatch.StartNew();
             winScreen.GetComponent<WinController>().jumpCount = 0;
+            winScreen.GetComponent<WinController>().letterCount = 0;
             uiHandler.gameObject.SetActive(true);
         });
         transform.GetChild(1).GetChild(3).GetComponent<Button>().onClick.AddListener(delegate{
@@ -75,6 +83,7 @@ public class MenuHandler : MonoBehaviour
             SceneManager.LoadScene("Map 3");
             winScreen.GetComponent<WinController>().levelStopwatch = Stopwatch.StartNew();
             winScreen.GetComponent<WinController>().jumpCount = 0;
+            winScreen.GetComponent<WinController>().letterCount = 0;
             uiHandler.gameObject.SetActive(true);
         });
         transform.GetChild(1).GetChild(4).GetComponent<Button>().onClick.AddListener(delegate{
@@ -96,12 +105,42 @@ public class MenuHandler : MonoBehaviour
             updateLeaderboard();
         });
         transform.GetChild(2).GetChild(8).GetComponent<Button>().onClick.AddListener(delegate{
+            difficulty = 0;
+            updateLeaderboard();
+        });
+        transform.GetChild(2).GetChild(9).GetComponent<Button>().onClick.AddListener(delegate{
+            difficulty = 1;
+            updateLeaderboard();
+        });
+        transform.GetChild(2).GetChild(10).GetComponent<Button>().onClick.AddListener(delegate{
+            difficulty = 2;
+            updateLeaderboard();
+        });
+        transform.GetChild(2).GetChild(11).GetComponent<Button>().onClick.AddListener(delegate{
             transform.GetChild(2).gameObject.SetActive(false);
             transform.GetChild(0).gameObject.SetActive(true);
         });
     }
 
-    void loadDontDestroys() {
+    void Update() {
+        if (dictController == null) {
+            loadDontDestroys();
+        }
+
+        switch (dictController.modeIndex) {
+            case 0:
+                transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Easy Mode";
+                break;
+            case 1:
+                transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Hard Mode";
+                break;
+            case 2:
+                transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Glitch Mode";
+                break;
+        }
+    }
+
+    public void loadDontDestroys() {
         foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
             if (t.name == "Win Screen") {
                 winScreen = t.gameObject;
@@ -118,9 +157,90 @@ public class MenuHandler : MonoBehaviour
                 uiHandler = t.gameObject.GetComponent<UIHandler>();
             }
         }
+
+        switch (dictController.modeIndex) {
+            case 0:
+                transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Easy Mode";
+                break;
+            case 1:
+                transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Hard Mode";
+                break;
+            case 2:
+                transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Glitch Mode";
+                break;
+        }
     }
 
     void updateLeaderboard() {
         GameObject leaderboard = transform.GetChild(2).gameObject;
+
+        LeaderboardController leaderboardController = null;
+
+        foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
+            if (t.name == "Leaderboard") {
+                leaderboardController = t.gameObject.GetComponent<LeaderboardController>();
+            }
+        }
+
+        List<LeaderboardEntry> entries = null;
+
+        switch (leaderboardLevel) {
+            case 1:
+                entries = leaderboardController.leaderboardData.levelOne;
+                break;
+            case 2:
+                entries = leaderboardController.leaderboardData.levelTwo;
+                break;
+            case 3:
+                entries = leaderboardController.leaderboardData.levelThree;
+                break;
+        }
+
+        LeaderboardEntry firstPlace = null;
+        LeaderboardEntry secondPlace = null;
+        LeaderboardEntry thirdPlace = null;
+
+        foreach(LeaderboardEntry entry in entries) {
+            if (entry.difficulty == difficulty) {
+                if (firstPlace == null || entry.time < firstPlace.time) {
+                    secondPlace = firstPlace;
+                    firstPlace = entry;
+                } else if (secondPlace == null || entry.time < secondPlace.time) {
+                    thirdPlace = secondPlace;
+                    secondPlace = entry;
+                } else if (thirdPlace == null || entry.time < thirdPlace.time) {
+                    thirdPlace = entry;
+                }
+            }
+        }
+
+        if (firstPlace == null) {
+            firstPlace = new LeaderboardEntry(){playerName = "Nobody", time=0, jumpCount=0, letters=0, difficulty=difficulty};
+        }
+        if (secondPlace == null) {
+            secondPlace = new LeaderboardEntry(){playerName = "Nobody", time=0, jumpCount=0, letters=0, difficulty=difficulty};
+        }
+        if (thirdPlace == null) {
+            thirdPlace = new LeaderboardEntry(){playerName = "Nobody", time=0, jumpCount=0, letters=0, difficulty=difficulty};
+        }
+
+        Transform firstPlaceObj = leaderboard.transform.GetChild(4);
+        Transform secondPlaceObj = leaderboard.transform.GetChild(5);
+        Transform thirdPlaceObj = leaderboard.transform.GetChild(6);
+
+        firstPlaceObj.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = firstPlace.playerName;
+        firstPlaceObj.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>().text = firstPlace.time + "s";
+        firstPlaceObj.GetChild(2).GetComponent<TMPro.TextMeshProUGUI>().text = firstPlace.jumpCount + "";
+        firstPlaceObj.GetChild(3).GetComponent<TMPro.TextMeshProUGUI>().text = firstPlace.letters + "";
+
+        secondPlaceObj.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = secondPlace.playerName;
+        secondPlaceObj.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>().text = secondPlace.time + "s";
+        secondPlaceObj.GetChild(2).GetComponent<TMPro.TextMeshProUGUI>().text = secondPlace.jumpCount + "";
+        secondPlaceObj.GetChild(3).GetComponent<TMPro.TextMeshProUGUI>().text = secondPlace.letters + "";
+
+        thirdPlaceObj.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = thirdPlace.playerName;
+        thirdPlaceObj.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>().text = thirdPlace.time + "s";
+        thirdPlaceObj.GetChild(2).GetComponent<TMPro.TextMeshProUGUI>().text = thirdPlace.jumpCount + "";
+        thirdPlaceObj.GetChild(3).GetComponent<TMPro.TextMeshProUGUI>().text = thirdPlace.letters + "";
     }
 }

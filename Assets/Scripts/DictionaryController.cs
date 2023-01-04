@@ -6,7 +6,7 @@ public class DictionaryController : MonoBehaviour
 {
 
     public TextAsset wordFile;
-    public bool easyMode = true;
+    public int modeIndex = 0;
     public HashSet<string> dictionary = new HashSet<string>();
 
     // Start is called before the first frame update

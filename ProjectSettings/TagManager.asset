@@ -8,6 +8,7 @@ TagManager:
   - Tutorial
   - DontDestroy
   - Kill
+  - Sticky
   layers:
   - Default
   - TransparentFX

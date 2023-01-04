@@ -10,6 +10,7 @@ public class WinController : MonoBehaviour
 
     public Stopwatch levelStopwatch;
     public int jumpCount = 0;
+    public int letterCount = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -25,11 +26,15 @@ public class WinController : MonoBehaviour
         }
 
         transform.GetChild(1).GetComponent<Button>().onClick.AddListener(delegate{
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-            gameObject.SetActive(false);
-            levelStopwatch = Stopwatch.StartNew();
-            jumpCount = 0;
-            uiHandler.gameObject.SetActive(true);
+            string playerName = transform.GetChild(1).GetChild(1).GetChild(0).GetComponent<TMPro.TMP_InputField>().text;
+            if (playerName == "") {
+                playerName = "Anonymous";
+            }
+            LeaderboardEntry entry = new LeaderboardEntry(){playerName = playerName, jumpCount = jumpCount, time = Mathf.Round(levelStopwatch.ElapsedMilliseconds/100)/10, letters=letterCount, difficulty=transform.parent.GetChild(4).GetComponent<DictionaryController>().modeIndex};
+
+            UnityEngine.Debug.Log(letterCount);
+
+            transform.parent.GetComponent<LeaderboardController>().addScore(entry, int.Parse(SceneManager.GetActiveScene().name.Split(" ")[1]));
         });
         transform.GetChild(2).GetComponent<Button>().onClick.AddListener(delegate{
             SceneManager.LoadScene("Menu");

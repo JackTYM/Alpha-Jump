@@ -17,6 +17,7 @@ public class MovementHandler : MonoBehaviour
     float angleDistance = 3.0f;
     bool clickedLastTick = false;
     bool onFloor = false;
+    bool stuck = false;
     GameObject player;
     GameObject pauseScreen;
     GameObject winScreen;
@@ -126,15 +127,16 @@ public class MovementHandler : MonoBehaviour
                 }
             }
 
-            if ((Input.GetKeyUp(KeyCode.Return) || Input.GetKeyUp(KeyCode.Space)) && onFloor) {
-                if (dictController.validWord(uiHandler.currentWord.ToLower()) || dictController.easyMode) {
+            if ((Input.GetKeyUp(KeyCode.Return) || Input.GetKeyUp(KeyCode.Space)) && (onFloor || dictController.modeIndex == 2)) {
+                if (dictController.validWord(uiHandler.currentWord.ToLower()) || dictController.modeIndex != 1) {
                     if (!clickedLastTick) {
+                        winScreen.GetComponent<WinController>().jumpCount += 1;
+                        winScreen.GetComponent<WinController>().letterCount += uiHandler.currentWord.Length;
                         currentJumpPower = uiHandler.currentWord.Length * 15f;
                         uiHandler.currentWord = "";
                         lr.positionCount = 0;
 
                         Jump();
-                        winScreen.GetComponent<WinController>().jumpCount += 1;
                         clickedLastTick = true;
                     }
                 } else {
@@ -154,13 +156,15 @@ public class MovementHandler : MonoBehaviour
                 xVel = xVel > 0 ? 0 : xVel;
             }
 
-            yVel -= stoppingForce * Time.deltaTime;
+            if (!stuck) {
+                yVel -= stoppingForce * Time.deltaTime;
 
-            if (yVel == 0) {
-                yVel = -0.01f;
+                if (yVel == 0) {
+                    yVel = -0.01f;
+                }
             }
 
-            if (onFloorFailsafe.ElapsedMilliseconds > 500) {
+            if (onFloorFailsafe.ElapsedMilliseconds > 200) {
                 if (transform.position.y == onFloorY && !onFloor) {
                     onFloor = true;
                     yVel = 0;
@@ -210,6 +214,7 @@ public class MovementHandler : MonoBehaviour
 
         if (currentJumpPower != 0f) {
             onFloor = false;
+            stuck = false;
         }
 
         onFloorFailsafe = Stopwatch.StartNew();
@@ -225,6 +230,16 @@ public class MovementHandler : MonoBehaviour
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
             winScreen.GetComponent<WinController>().levelStopwatch = Stopwatch.StartNew();
             winScreen.GetComponent<WinController>().jumpCount = 0;
+            winScreen.GetComponent<WinController>().letterCount = 0;
+        }
+        if (stuck) {
+            return;
+        }
+        if (collision.gameObject.tag == "Sticky") {
+            xVel = 0;
+            yVel = 0;
+            transform.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+            stuck = true;
         }
 
         if(Mathf.Round(direction.x) != 0) {
