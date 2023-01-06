@@ -9,6 +9,7 @@ public class WinController : MonoBehaviour
 {
 
     public Stopwatch levelStopwatch;
+    public float timeForLevel = 0f;
     public int jumpCount = 0;
     public int letterCount = 0;
 
@@ -30,7 +31,7 @@ public class WinController : MonoBehaviour
             if (playerName == "") {
                 playerName = "Anonymous";
             }
-            LeaderboardEntry entry = new LeaderboardEntry(){playerName = playerName, jumpCount = jumpCount, time = Mathf.Round(levelStopwatch.ElapsedMilliseconds/100)/10, letters=letterCount, difficulty=transform.parent.GetChild(4).GetComponent<DictionaryController>().modeIndex};
+            LeaderboardEntry entry = new LeaderboardEntry(){playerName = playerName, jumpCount = jumpCount, time = timeForLevel, letters=letterCount, difficulty=transform.parent.GetChild(4).GetComponent<DictionaryController>().modeIndex};
 
             UnityEngine.Debug.Log(letterCount);
 
@@ -47,7 +48,8 @@ public class WinController : MonoBehaviour
     // Update is called once per frame
     public void EndLevel()
     {
-        transform.Find("Level Stats").GetComponent<TMPro.TextMeshProUGUI>().text = "Completed level in " + Mathf.Round(levelStopwatch.ElapsedMilliseconds/100)/10 + "s with " + jumpCount + " jumps";
+        timeForLevel = Mathf.Round(levelStopwatch.ElapsedMilliseconds/100)/10;
+        transform.Find("Level Stats").GetComponent<TMPro.TextMeshProUGUI>().text = "Completed level in " + timeForLevel + "s with " + jumpCount + " jumps";
         gameObject.SetActive(true);
     }
 }

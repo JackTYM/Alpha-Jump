@@ -8,6 +8,7 @@ using System.Diagnostics;
 
 public class MenuHandler : MonoBehaviour
 {
+    public bool onWeb = false;
 
     int leaderboardLevel = 1;
     int difficulty = 0;
@@ -56,8 +57,12 @@ public class MenuHandler : MonoBehaviour
         });
         transform.GetChild(0).GetChild(2).GetComponent<Button>().onClick.AddListener(delegate{
             transform.GetChild(0).gameObject.SetActive(false);
-            transform.GetChild(2).gameObject.SetActive(true);
-            updateLeaderboard();
+            if (onWeb) {
+                transform.GetChild(3).gameObject.SetActive(true);
+            } else {
+                transform.GetChild(2).gameObject.SetActive(true);
+                updateLeaderboard();
+            }
         });
         transform.GetChild(0).GetChild(3).GetComponent<Button>().onClick.AddListener(delegate{Application.Quit();});
 
@@ -118,6 +123,11 @@ public class MenuHandler : MonoBehaviour
         });
         transform.GetChild(2).GetChild(11).GetComponent<Button>().onClick.AddListener(delegate{
             transform.GetChild(2).gameObject.SetActive(false);
+            transform.GetChild(0).gameObject.SetActive(true);
+        });
+
+        transform.GetChild(3).GetChild(2).GetComponent<Button>().onClick.AddListener(delegate{
+            transform.GetChild(3).gameObject.SetActive(false);
             transform.GetChild(0).gameObject.SetActive(true);
         });
     }
@@ -196,32 +206,27 @@ public class MenuHandler : MonoBehaviour
                 break;
         }
 
+        entries.RemoveAll(x => x.difficulty!=difficulty);
+        entries.Sort((x,y) => x.time.CompareTo(y.time));
+
         LeaderboardEntry firstPlace = null;
         LeaderboardEntry secondPlace = null;
         LeaderboardEntry thirdPlace = null;
 
-        foreach(LeaderboardEntry entry in entries) {
-            if (entry.difficulty == difficulty) {
-                if (firstPlace == null || entry.time < firstPlace.time) {
-                    secondPlace = firstPlace;
-                    firstPlace = entry;
-                } else if (secondPlace == null || entry.time < secondPlace.time) {
-                    thirdPlace = secondPlace;
-                    secondPlace = entry;
-                } else if (thirdPlace == null || entry.time < thirdPlace.time) {
-                    thirdPlace = entry;
-                }
-            }
-        }
-
-        if (firstPlace == null) {
+        if (entries.Count < 1) {
             firstPlace = new LeaderboardEntry(){playerName = "Nobody", time=0, jumpCount=0, letters=0, difficulty=difficulty};
+        } else {
+            firstPlace = entries[0];
         }
-        if (secondPlace == null) {
+        if (entries.Count < 2) {
             secondPlace = new LeaderboardEntry(){playerName = "Nobody", time=0, jumpCount=0, letters=0, difficulty=difficulty};
+        } else {
+            secondPlace = entries[1];
         }
-        if (thirdPlace == null) {
+        if (entries.Count < 3) {
             thirdPlace = new LeaderboardEntry(){playerName = "Nobody", time=0, jumpCount=0, letters=0, difficulty=difficulty};
+        } else {
+            thirdPlace = entries[2];
         }
 
         Transform firstPlaceObj = leaderboard.transform.GetChild(4);
