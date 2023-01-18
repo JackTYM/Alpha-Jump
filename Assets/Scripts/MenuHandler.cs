@@ -4,27 +4,27 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Networking;
 using System.Diagnostics;
+using Unity.Netcode;
 
-public class MenuHandler : MonoBehaviour
+public class MenuHandler : NetworkBehaviour
 {
-    public bool onWeb = false;
-
-    int leaderboardLevel = 1;
-    int difficulty = 0;
-    GameObject winScreen = null;
-    DictionaryController dictController = null;
-    UIHandler uiHandler = null;
+    int leaderboardLevel = 1; // variable to store the current level shown in the leaderboard
+    int difficulty = 0; // variable to store the current difficulty level
+    CountdownHandler countdown = null; // variable to store the countdown handler
+    DictionaryController dictController = null; // variable to store the dictionary controller
+    UIHandler uiHandler = null; // variable to store the UI handler
 
     // Start is called before the first frame update
     void Start()
     {
-        loadDontDestroys();
+        loadDontDestroys(); // function to load objects that should not be destroyed on scene change
 
         //Modes
         transform.GetChild(0).GetChild(4).GetComponent<Button>().onClick.AddListener(delegate{
-            loadDontDestroys();
-            dictController.modeIndex++;
+            loadDontDestroys(); // function to load objects that should not be destroyed on scene change
+            dictController.modeIndex++; // increment the mode index
             if (dictController.modeIndex == 3) {
                 dictController.modeIndex = 0;
             }
@@ -43,55 +43,54 @@ public class MenuHandler : MonoBehaviour
         });
 
         //Main Menu
+        //When the first button in the first child of the object this script is attached to is clicked, it will deactivate the first child gameObject and activate the second child gameObject
         transform.GetChild(0).GetChild(0).GetComponent<Button>().onClick.AddListener(delegate{
             transform.GetChild(0).gameObject.SetActive(false);
             transform.GetChild(1).gameObject.SetActive(true);
         });
+        //when the second button in the first child of the object this script is attached to is clicked, it will load the "Tutorial Map" scene and activate the "uiHandler" gameObject
         transform.GetChild(0).GetChild(1).GetComponent<Button>().onClick.AddListener(delegate{
             loadDontDestroys();
             SceneManager.LoadScene("Tutorial Map");
-            winScreen.GetComponent<WinController>().levelStopwatch = Stopwatch.StartNew();
-            winScreen.GetComponent<WinController>().jumpCount = 0;
-            winScreen.GetComponent<WinController>().letterCount = 0;
             uiHandler.gameObject.SetActive(true);
         });
+        //when the third button in the first child of the object this script is attached to is clicked, it will deactivate the first child gameObject and activate the third child gameObject and call the "updateLeaderboard" function
         transform.GetChild(0).GetChild(2).GetComponent<Button>().onClick.AddListener(delegate{
             transform.GetChild(0).gameObject.SetActive(false);
-            if (onWeb) {
-                transform.GetChild(3).gameObject.SetActive(true);
-            } else {
-                transform.GetChild(2).gameObject.SetActive(true);
-                updateLeaderboard();
-            }
+            transform.GetChild(2).gameObject.SetActive(true);
+            updateLeaderboard();
         });
+        //when the fourth button in the first child of the object this script is attached to is clicked, it will quit the application
         transform.GetChild(0).GetChild(3).GetComponent<Button>().onClick.AddListener(delegate{Application.Quit();});
 
         //Levels
+        //when the first button in the second child of the object this script is attached to is clicked, it will load the "Map 1" scene and activate the "uiHandler" gameObject and call the "startCountdown" function
         transform.GetChild(1).GetChild(1).GetComponent<Button>().onClick.AddListener(delegate{
             loadDontDestroys();
             SceneManager.LoadScene("Map 1");
-            winScreen.GetComponent<WinController>().levelStopwatch = Stopwatch.StartNew();
-            winScreen.GetComponent<WinController>().jumpCount = 0;
-            winScreen.GetComponent<WinController>().letterCount = 0;
             uiHandler.gameObject.SetActive(true);
+            countdown.startCountdown();
         });
+        //when the second button in the second child of the object this script is attached to is clicked, it will load the "Map 2" scene and activate the "uiHandler" gameObject and call the "startCountdown" function
         transform.GetChild(1).GetChild(2).GetComponent<Button>().onClick.AddListener(delegate{
             loadDontDestroys();
             SceneManager.LoadScene("Map 2");
-            winScreen.GetComponent<WinController>().levelStopwatch = Stopwatch.StartNew();
-            winScreen.GetComponent<WinController>().jumpCount = 0;
-            winScreen.GetComponent<WinController>().letterCount = 0;
             uiHandler.gameObject.SetActive(true);
+            countdown.startCountdown();
         });
+        //when the third button in the second child of the object this script is attached to is clicked, it will load the "Map 3" scene and activate the "uiHandler" gameObject and call the "startCountdown" function
         transform.GetChild(1).GetChild(3).GetComponent<Button>().onClick.AddListener(delegate{
             loadDontDestroys();
-            SceneManager.LoadScene("Map 3");
-            winScreen.GetComponent<WinController>().levelStopwatch = Stopwatch.StartNew();
-            winScreen.GetComponent<WinController>().jumpCount = 0;
-            winScreen.GetComponent<WinController>().letterCount = 0;
             uiHandler.gameObject.SetActive(true);
+            countdown.startCountdown();
         });
+        //when the fourth button in the second child of the object this script is attached to is clicked, it will hide the Levels screen and show the Multiplayer screen
         transform.GetChild(1).GetChild(4).GetComponent<Button>().onClick.AddListener(delegate{
+            transform.GetChild(1).gameObject.SetActive(false);
+            transform.GetChild(4).gameObject.SetActive(true);
+        });
+        //when the fifth button in the second child of the object this script is attached to is clicked, it will hide the Levels screen and show the Menu screen
+        transform.GetChild(1).GetChild(5).GetComponent<Button>().onClick.AddListener(delegate{
             transform.GetChild(1).gameObject.SetActive(false);
             transform.GetChild(0).gameObject.SetActive(true);
         });
@@ -130,6 +129,48 @@ public class MenuHandler : MonoBehaviour
             transform.GetChild(3).gameObject.SetActive(false);
             transform.GetChild(0).gameObject.SetActive(true);
         });
+
+        transform.GetChild(4).GetChild(1).GetComponent<Button>().onClick.AddListener(delegate{
+            NetworkManager.StartHost();
+        });
+        transform.GetChild(4).GetChild(2).GetComponent<Button>().onClick.AddListener(delegate{
+            NetworkManager.gameObject.GetComponent<Unity.Netcode.Transports.UTP.UnityTransport>().ConnectionData.Address = transform.GetChild(4).GetChild(4).GetComponent<TMPro.TMP_InputField>().text;
+            NetworkManager.StartClient();
+        });
+        transform.GetChild(4).GetChild(3).GetComponent<Button>().onClick.AddListener(delegate{
+            GUIUtility.systemCopyBuffer = GetIPAddress();
+        });
+        transform.GetChild(4).GetChild(5).GetComponent<Button>().onClick.AddListener(delegate{
+            loadDontDestroys();
+            NetworkManager.SceneManager.LoadScene("Map 1", LoadSceneMode.Single);
+            foreach (NetworkClient network in NetworkManager.ConnectedClients.Values)
+            {
+                network.PlayerObject.transform.position = new Vector3(0f, 0f, -0.57f);
+                network.PlayerObject.GetComponent<PlayerNetwork>().overwritePos = new Vector3(0f, 0f, -0.57f);
+            }
+        });
+        transform.GetChild(4).GetChild(6).GetComponent<Button>().onClick.AddListener(delegate{
+            loadDontDestroys();
+            NetworkManager.SceneManager.LoadScene("Map 2", LoadSceneMode.Single);
+            foreach (NetworkClient network in NetworkManager.ConnectedClients.Values)
+            {
+                network.PlayerObject.transform.position = new Vector3(0f, 0f, -0.57f);
+                network.PlayerObject.GetComponent<PlayerNetwork>().overwritePos = new Vector3(0f, 0f, -0.57f);
+            }
+        });
+        transform.GetChild(4).GetChild(7).GetComponent<Button>().onClick.AddListener(delegate{
+            loadDontDestroys();
+            NetworkManager.SceneManager.LoadScene("Map 3", LoadSceneMode.Single);
+            foreach (NetworkClient network in NetworkManager.ConnectedClients.Values)
+            {
+                network.PlayerObject.transform.position = new Vector3(0f, 0f, -0.57f);
+                network.PlayerObject.GetComponent<PlayerNetwork>().overwritePos = new Vector3(0f, 0f, -0.57f);
+            }
+        });
+        transform.GetChild(4).GetChild(8).GetComponent<Button>().onClick.AddListener(delegate{
+            transform.GetChild(4).gameObject.SetActive(false);
+            transform.GetChild(1).gameObject.SetActive(true);
+        });
     }
 
     void Update() {
@@ -152,11 +193,6 @@ public class MenuHandler : MonoBehaviour
 
     public void loadDontDestroys() {
         foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
-            if (t.name == "Win Screen") {
-                winScreen = t.gameObject;
-            }
-        }
-        foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
             if (t.name == "Dictionary") {
                 dictController = t.gameObject.GetComponent<DictionaryController>();
             }
@@ -178,6 +214,31 @@ public class MenuHandler : MonoBehaviour
             case 2:
                 transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "Glitch Mode";
                 break;
+        }
+    }
+
+    private string GetIPAddress()
+    {
+        UnityWebRequest www = UnityWebRequest.Get("http://checkip.dyndns.org");
+
+        if (www.isNetworkError || www.isHttpError)
+        {
+            return "Error";
+        }
+        else
+        {
+            string result = www.downloadHandler.text;
+
+            // This results in a string similar to this: <html><head><title>Current IP Check</title></head><body>Current IP Address: 123.123.123.123</body></html>
+            // where 123.123.123.123 is your external IP Address.
+            //  Debug.Log("" + result);
+
+            string[] a = result.Split(':'); // Split into two substrings -> one before : and one after. 
+            string a2 = a[1].Substring(1);  // Get the substring after the :
+            string[] a3 = a2.Split('<');    // Now split to the first HTML tag after the IP address.
+            string a4 = a3[0];              // Get the substring before the tag.
+
+            return a4;
         }
     }
 

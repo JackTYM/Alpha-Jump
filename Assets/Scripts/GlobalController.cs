@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using UnityEngine.SceneManagement; // for accessing the Scene Manager
 
 public class GlobalController : MonoBehaviour
 {
@@ -9,11 +9,11 @@ public class GlobalController : MonoBehaviour
     void Start()
     {
         if (GameObject.FindGameObjectsWithTag("DontDestroy").Length <= 1) {
-            DontDestroyOnLoad(this);
+            DontDestroyOnLoad(this); // make this gameObject persist across scenes
         } else {
             foreach (GameObject o in GameObject.FindGameObjectsWithTag("DontDestroy")) {
                 if (o.scene.name != "DontDestroyOnLoad") {
-                    GameObject.Destroy(o);
+                    GameObject.Destroy(o); // destroy the duplicate gameObjects
                 }
             }
         }
@@ -22,11 +22,11 @@ public class GlobalController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape)) {
-            if (SceneManager.GetActiveScene().name.Contains("Map")) {
-                transform.GetChild(0).gameObject.SetActive(!transform.GetChild(0).gameObject.activeSelf);
+        if (Input.GetKeyDown(KeyCode.Escape)) { // check if the Escape key is pressed
+            if (SceneManager.GetActiveScene().name.Contains("Map")) { // check if the active scene is a map
+                transform.GetChild(0).gameObject.SetActive(!transform.GetChild(0).gameObject.activeSelf); // toggle the active state of the first child gameObject
             } else {
-                Application.Quit();
+                Application.Quit(); // otherwise, quit the application
             }
         }
     }

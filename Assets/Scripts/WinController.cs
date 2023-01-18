@@ -12,6 +12,7 @@ public class WinController : MonoBehaviour
     public float timeForLevel = 0f;
     public int jumpCount = 0;
     public int letterCount = 0;
+    GameObject pauseScreen;
 
     // Start is called before the first frame update
     void Start()
@@ -44,12 +45,18 @@ public class WinController : MonoBehaviour
         });
         transform.GetChild(3).GetComponent<Button>().onClick.AddListener(delegate{Application.Quit();});
     }
-
-    // Update is called once per frame
+    
     public void EndLevel()
     {
         timeForLevel = Mathf.Round(levelStopwatch.ElapsedMilliseconds/100)/10;
+        transform.GetChild(4).GetComponent<TMPro.TextMeshProUGUI>().text = "You Win!";
         transform.Find("Level Stats").GetComponent<TMPro.TextMeshProUGUI>().text = "Completed level in " + timeForLevel + "s with " + jumpCount + " jumps";
+        gameObject.SetActive(true);
+    }
+
+    public void LoseLevel(float timeForLevel2, float jumpCount2) {
+        transform.GetChild(4).GetComponent<TMPro.TextMeshProUGUI>().text = "You Lose!";
+        transform.Find("Level Stats").GetComponent<TMPro.TextMeshProUGUI>().text = "The other player completed the level in " + timeForLevel2 + "s with " + jumpCount2 + " jumps";
         gameObject.SetActive(true);
     }
 }

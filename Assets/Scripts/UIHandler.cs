@@ -64,6 +64,19 @@ public class UIHandler : MonoBehaviour
                 }
             }
         }
+
+        if (winScreen.GetComponent<WinController>().levelStopwatch != null) {
+            if (winScreen.GetComponent<WinController>().levelStopwatch.IsRunning && (pauseScreen.activeSelf || winScreen.activeSelf)) {
+                winScreen.GetComponent<WinController>().levelStopwatch.Stop();
+            }
+            if (!winScreen.GetComponent<WinController>().levelStopwatch.IsRunning && !(pauseScreen.activeSelf || winScreen.activeSelf)) {
+                winScreen.GetComponent<WinController>().levelStopwatch.Start();
+            }
+        }
+
+        if (winScreen.GetComponent<WinController>().levelStopwatch != null) {
+            transform.GetChild(2).GetComponent<TMPro.TextMeshProUGUI>().text = Mathf.Round(winScreen.GetComponent<WinController>().levelStopwatch.ElapsedMilliseconds/100)/10 + "s";
+        }
     }
 
     int getMaxLength() {

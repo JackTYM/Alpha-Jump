@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Diagnostics;
+using Unity.Netcode;
 
-public class MovementHandler : MonoBehaviour
+public class MovementHandler : NetworkBehaviour
 {
 
     public float currentJumpPower = 0f;
@@ -19,6 +20,7 @@ public class MovementHandler : MonoBehaviour
     bool onFloor = false;
     bool stuck = false;
     GameObject player;
+    GameObject countdown;
     GameObject pauseScreen;
     GameObject winScreen;
     DictionaryController dictController;
@@ -28,6 +30,14 @@ public class MovementHandler : MonoBehaviour
     Stopwatch onFloorFailsafe = Stopwatch.StartNew();
     float onFloorY = 0f;
     List<GameObject> floorCollisions = new List<GameObject>();
+
+    public override void OnNetworkSpawn()
+    {
+        if (!IsOwner) {
+            transform.GetChild(0).gameObject.SetActive(false);
+            enabled = false;
+        }
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -80,9 +90,17 @@ public class MovementHandler : MonoBehaviour
             }
         }
 
+        if (countdown == null) {
+            foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
+                if (t.name == "Countdown Screen") {
+                    countdown = t.gameObject;
+                }
+            }
+        }
+
         transform.localRotation = new Quaternion();
 
-        if(!pauseScreen.activeSelf && !winScreen.activeSelf) {
+        if(!pauseScreen.activeSelf && !winScreen.activeSelf && !countdown.activeSelf && GetComponent<SpriteRenderer>().enabled) {
 
             if (pausedVel != Vector2.zero) {
                 transform.GetComponent<Rigidbody2D>().velocity = pausedVel;
@@ -202,14 +220,20 @@ public class MovementHandler : MonoBehaviour
         transform.GetChild(0).gameObject.SetActive(true);
     }
 
+    //Triggers when player presses Enter or Space
+    //Calculates degrees and uses that as a ratio for the velocity
     public void Jump() {
-        var tempShittyCode = (currentJumpAngle-90)*-1;
-        if (tempShittyCode > 180) {
-            tempShittyCode -= 360;
+        //Calculate the degree angle of the jump by subtracting 90 from the current jump angle and then multiplying that value by -1
+        var degreeAngle = (currentJumpAngle-90)*-1;
+        // If the degree angle is greater than 180, decrement it by 360
+        if (degreeAngle > 180) {
+            degreeAngle -= 360;
         }
 
-        xVel = currentJumpPower*(tempShittyCode / 90);
-        yVel = currentJumpPower*(1-(Mathf.Abs(tempShittyCode) / 90));
+        // Set the x and y velocity of the object based on the current jump power and the calculated degree angle
+        xVel = currentJumpPower*(degreeAngle / 90);
+        yVel = currentJumpPower*(1-(Mathf.Abs(degreeAngle) / 90));
+        // Set the angle text to inactive
         transform.GetChild(0).gameObject.SetActive(false);
 
         if (currentJumpPower != 0f) {
@@ -217,8 +241,11 @@ public class MovementHandler : MonoBehaviour
             stuck = false;
         }
 
+        // Start stopwatch for failsafe
         onFloorFailsafe = Stopwatch.StartNew();
+        // Check if the current scene is a tutorial scene
         if (SceneManager.GetActiveScene().name.Contains("Tutorial")) {
+            // Trigger tutorial text
             GameObject.FindGameObjectWithTag("Tutorial").GetComponent<TutorialTextHandler>().TriggerCondition(TutorialTextHandler.passConditions.Jump);
         }
     }
@@ -227,10 +254,16 @@ public class MovementHandler : MonoBehaviour
         Vector2 direction = collision.GetContact(0).normal;
 
         if (collision.gameObject.tag == "Kill") {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-            winScreen.GetComponent<WinController>().levelStopwatch = Stopwatch.StartNew();
-            winScreen.GetComponent<WinController>().jumpCount = 0;
-            winScreen.GetComponent<WinController>().letterCount = 0;
+            transform.position = new Vector3(0,0,-0.49f);
+            xVel = 0;
+            yVel = 0;
+            if (SceneManager.GetActiveScene().name.Contains("Map 3")) {
+                foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
+                    if ((t.name == "Key Door(Clone)" || t.name == "Key Door 1(Clone)") && t.GetComponent<NetworkObject>().IsOwner && !t.gameObject.activeSelf) {
+                        t.gameObject.SetActive(true);
+                    }
+                }
+            }
         }
         if (stuck) {
             return;
@@ -255,10 +288,17 @@ public class MovementHandler : MonoBehaviour
         } else if(Mathf.Round(direction.y) == 1) {
             //Under Player
             if (collision.gameObject.tag == "Finish") {
-                if (SceneManager.GetActiveScene().name.Contains("Tutorial")) {
-                    GameObject.FindGameObjectWithTag("Tutorial").GetComponent<TutorialTextHandler>().TriggerCondition(TutorialTextHandler.passConditions.Finish);
+                if (IsOwner) {
+                    if (SceneManager.GetActiveScene().name.Contains("Tutorial")) {
+                        GameObject.FindGameObjectWithTag("Tutorial").GetComponent<TutorialTextHandler>().TriggerCondition(TutorialTextHandler.passConditions.Finish);
+                    }
+                    winScreen.GetComponent<WinController>().EndLevel();
+                } else {
+                    foreach (WinController win in Resources.FindObjectsOfTypeAll<WinController>()) {
+                        win.LoseLevel(transform.gameObject.GetComponent<PlayerNetwork>().timeForLevel.Value, 
+                            transform.gameObject.GetComponent<PlayerNetwork>().jumpCount.Value);
+                    }
                 }
-                winScreen.GetComponent<WinController>().EndLevel();
             }
             yVel = 0;
             onFloor = true;
@@ -278,11 +318,12 @@ public class MovementHandler : MonoBehaviour
     }
 
     void OnTriggerEnter2D(Collider2D col) {
-        col.gameObject.GetComponent<KeyHandler>().doorToUnlock.SetActive(false);
-        col.gameObject.SetActive(false);
+        if (IsOwner && col.transform.parent.GetComponent<NetworkObject>().IsOwner && col.IsTouching(transform.GetComponent<CircleCollider2D>())) {
+            col.transform.parent.gameObject.SetActive(false);
 
-        if (SceneManager.GetActiveScene().name.Contains("Tutorial")) {
-            GameObject.FindGameObjectWithTag("Tutorial").GetComponent<TutorialTextHandler>().TriggerCondition(TutorialTextHandler.passConditions.GrabKey);
+            if (SceneManager.GetActiveScene().name.Contains("Tutorial")) {
+                GameObject.FindGameObjectWithTag("Tutorial").GetComponent<TutorialTextHandler>().TriggerCondition(TutorialTextHandler.passConditions.GrabKey);
+            }
         }
     }
 }
