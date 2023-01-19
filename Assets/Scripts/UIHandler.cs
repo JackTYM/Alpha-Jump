@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class UIHandler : MonoBehaviour
 {
 
@@ -55,11 +56,12 @@ public class UIHandler : MonoBehaviour
 
             for (int i = 0; i <= 9; i++) {
                 GameObject currentLetter = transform.GetChild(0).GetChild(i).gameObject;
+                Color color = currentLetter.GetComponent<Image>().color;
                 if (currentWord.Length < i+1) {
-                    currentLetter.GetComponent<Image>().color = new Color(1,1,1,0.1f);
+                    currentLetter.GetComponent<Image>().color = new Color(color.r,color.g,color.b, .1f);
                     currentLetter.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = "";
                 } else {
-                    currentLetter.GetComponent<Image>().color = new Color(1,1,1,1f);
+                    currentLetter.GetComponent<Image>().color = new Color(color.r,color.g,color.b, 1f);
                     currentLetter.transform.GetChild(0).GetComponent<TMPro.TextMeshProUGUI>().text = currentWord[i].ToString();
                 }
             }
