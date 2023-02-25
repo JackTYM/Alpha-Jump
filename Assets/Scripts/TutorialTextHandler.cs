@@ -71,29 +71,38 @@ public class TutorialTextHandler : MonoBehaviour
             // Update the tutorial text box with a random congratulatory message
             textBox.text = congratulatoryMessages[Random.Range(0, congratulatoryMessages.Count)];
 
+            if (letters == null) {
+                // Find the letters game object
+                foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>()) {
+                    if (t.name == "Letters") {
+                        letters = t.gameObject;
+                    }
+                }
+            }
+
             switch (condition) {
                 case passConditions.AngleNudge:
                     // Activates the first 2 letters
                     for (int i = 0; i <= 9; i++) {
-                        GameObject.Find("Letters").transform.GetChild(i).gameObject.SetActive(i < 2);
+                        letters.transform.GetChild(i).gameObject.SetActive(i < 2);
                     }
                     break;
                 case passConditions.Jump:
                     // Activates different letters depending on the jump count
                     if (jumpCount == 0) {
                         for (int i = 0; i <= 9; i++) {
-                            GameObject.Find("Letters").transform.GetChild(i).gameObject.SetActive(i < 4);
+                            letters.transform.GetChild(i).gameObject.SetActive(i < 4);
                         }
                     } else {
                         for (int i = 0; i <= 9; i++) {
-                            GameObject.Find("Letters").transform.GetChild(i).gameObject.SetActive(true);
+                            letters.transform.GetChild(i).gameObject.SetActive(true);
                         }
                     }
                     jumpCount++;
                     break;
                 case passConditions.WallBounce:
                     // Activates the "Key" object
-                    GameObject.Find("Surfaces").transform.Find("Key").gameObject.SetActive(true);
+                    GameObject.Find("Surfaces").transform.Find("Key Door").transform.GetChild(1).gameObject.SetActive(true);
                     break;
                 
             }

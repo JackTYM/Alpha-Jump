@@ -106,6 +106,7 @@ public class MenuHandler : NetworkBehaviour
             loadDontDestroys();
             SceneManager.LoadScene("Tutorial Map");
             uiHandler.gameObject.SetActive(true);
+            countdown.startCountdown();
         });
         // Back Button
         transform.GetChild(1).GetChild(6).GetComponent<Button>().onClick.AddListener(delegate{
